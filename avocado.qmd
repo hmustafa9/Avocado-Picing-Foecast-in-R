@@ -48,8 +48,9 @@ Numerical Summary
 data %>% 
   summary()
 ```
-
+Agregating data for weeks.
 ```{r}
+#| message = FALSE
 library(lubridate)
 
 # Create a deep copy of the data frame
@@ -66,12 +67,12 @@ df1 <- df1 %>%
 # Group by the week column and summarise the numeric columns
 df1 <- df1 %>%
   group_by(week) %>% 
-  summarise(across(where(is.numeric), sum, na.rm = TRUE))
+  summarise(across(where(is.numeric), ~sum(., na.rm = TRUE)))
 
 # Display the first few rows of the resulting data frame
 head(df1)
 ```
-
+Plotting Data distribution for Average Price.
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -106,7 +107,7 @@ p3 <- ggplot(df1, aes(x = Date, y = AveragePrice)) +
 print(p3)
 
 ```
-
+Listing columns by data types.
 ```{r}
 # Get column names
 col <- names(data)
@@ -131,6 +132,7 @@ numerical_features <- numerical_features[!numerical_features %in% c('Date', 'Ave
 cat('Categorical Features:', paste(categorical_features, collapse = ', '), '\n')
 cat('Numerical Features:', paste(numerical_features, collapse = ', '), '\n')
 ```
+Plotting distribution by year.
 ```{r}
 # Load necessary libraries
 library(ggplot2)
