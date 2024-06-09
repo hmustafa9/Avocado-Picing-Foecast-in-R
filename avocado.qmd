@@ -1,0 +1,162 @@
+---
+title: "Avocado Pricing in R"
+author: "Husnain Mustafa"
+date: "06/02/2024"
+format:
+  html:
+    code-fold: true
+theme: darkly
+---
+
+# Loading Data:
+
+## Loading Libraries and Data Files
+```{r}
+#| message = FALSE
+library(tidyverse)
+library(ggplot2)
+library(naniar)
+```
+```{r}
+#| message = FALSE
+data <- read_csv('data/avocado.csv')
+head(data)
+```
+
+# Dataset Infomation:
+Data Dimensions
+```{r}
+dim(data)
+```
+Column Names:
+```{r}
+colnames(data)
+```
+Structure:
+```{r}
+str(data)
+```
+Missing Data:
+```{r}
+gg_miss_var(data) + 
+  scale_fill_viridis_c(option = "magma") + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+```
+Numerical Summary
+```{r}
+data %>% 
+  summary()
+```
+
+```{r}
+library(lubridate)
+
+# Create a deep copy of the data frame
+df1 <- data
+
+# Convert the 'Date' column to Date type
+df1$Date <- ymd(df1$Date)
+
+# Arrange the data by Date and create a week column
+df1 <- df1 %>% 
+  arrange(Date) %>% 
+  mutate(week = floor_date(Date, "week"))
+
+# Group by the week column and summarise the numeric columns
+df1 <- df1 %>%
+  group_by(week) %>% 
+  summarise(across(where(is.numeric), sum, na.rm = TRUE))
+
+# Display the first few rows of the resulting data frame
+head(df1)
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+
+# Define the color palette
+color1 <- c('#296C92', '#3EB489')
+
+# Create the first set of plots for the distribution of AveragePrice
+p1 <- ggplot(data, aes(x = AveragePrice)) +
+  geom_density(fill = color1[1], alpha = 0.6) +
+  ggtitle('Distribution: AveragePrice')
+
+p2 <- ggplot(df1, aes(x = AveragePrice)) +
+  geom_density(fill = color1[2], alpha = 0.6) +
+  ggtitle('Distribution: AveragePrice')
+
+# Arrange the first set of plots side by side
+grid.arrange(p1, p2, ncol = 2)
+
+# Convert week to Date for plotting purposes
+df1 <- df1 %>%
+  mutate(Date = week)
+
+# Create the line plot for AveragePrice vs Date
+p3 <- ggplot(df1, aes(x = Date, y = AveragePrice)) + 
+  geom_line(color = color1[1]) +
+  ggtitle('AveragePrice vs Date') +
+  theme_minimal()
+
+# Display the line plot
+print(p3)
+
+```
+
+```{r}
+# Get column names
+col <- names(data)
+
+# Initialize lists to store categorical and numerical features
+categorical_features <- c()
+numerical_features <- c()
+
+# Iterate through columns
+for (i in col) {
+    if (length(unique(data[[i]])) > 6) {
+        numerical_features <- c(numerical_features, i)
+    } else {
+        categorical_features <- c(categorical_features, i)
+    }
+}
+
+# Remove specific features from numerical features
+numerical_features <- numerical_features[!numerical_features %in% c('Date', 'AveragePrice', 'region')]
+
+# Print categorical and numerical features
+cat('Categorical Features:', paste(categorical_features, collapse = ', '), '\n')
+cat('Numerical Features:', paste(numerical_features, collapse = ', '), '\n')
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+
+# Convert 'type' column to factor using LabelEncoder
+data$type <- as.factor(data$type)
+
+# Create subplots for distribution and count plots
+p_distribution <- lapply(categorical_features, function(feature) {
+  ggplot(data, aes(x = !!sym(feature))) +
+    geom_density(fill = "#296C92", alpha = 0.6) +
+    ggtitle(paste("Distribution:", feature)) +
+    theme_minimal()
+})
+
+p_count <- lapply(categorical_features, function(feature) {
+  ggplot(data, aes(x = !!sym(feature), fill = !!sym(feature))) +
+    geom_bar() +
+    scale_fill_manual(values = c("#296C92", "#3EB489")) +
+    ggtitle(paste("Count:", feature)) +
+    theme_minimal()
+})
+
+# Combine plots into grid
+grid.arrange(grobs = p_distribution, ncol = 2)
+grid.arrange(grobs = p_count, ncol = 2)
+
+```
