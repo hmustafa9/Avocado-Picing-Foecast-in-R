@@ -38,10 +38,21 @@ str(data)
 ```
 Missing Data:
 ```{r}
-gg_miss_var(data) + 
-  scale_fill_viridis_c(option = "magma") + 
+# Load necessary libraries
+library(ggplot2)
+library(reshape2)
+
+# Assuming 'data' is your dataframe
+# Melt the dataframe to long format
+data_melt <- melt(is.na(data))
+
+# Create a heatmap
+ggplot(data_melt, aes(x = Var2, y = Var1, fill = value)) + 
+  geom_tile() + 
+  scale_fill_manual(values = c("TRUE" = "purple", "FALSE" = "black")) + 
   theme_minimal() + 
-  theme(legend.position = "none")
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), 
+        legend.position = "none")
 ```
 Numerical Summary
 ```{r}
@@ -78,33 +89,38 @@ Plotting Data distribution for Average Price.
 library(ggplot2)
 library(gridExtra)
 
-# Define the color palette
+# Assuming 'data' and 'df1' are your dataframes
+
+# Color palette
 color1 <- c('#296C92', '#3EB489')
 
-# Create the first set of plots for the distribution of AveragePrice
+# First subplot: Distribution of AveragePrice in 'data'
 p1 <- ggplot(data, aes(x = AveragePrice)) +
-  geom_density(fill = color1[1], alpha = 0.6) +
-  ggtitle('Distribution: AveragePrice')
+  geom_histogram(aes(y = ..density..), bins = 30, fill = color1[1], alpha = 0.6) +
+  geom_density(color = color1[1], size = 1) +
+  ggtitle('Distribution: AveragePrice') +
+  theme_minimal()
 
+# Second subplot: Distribution of AveragePrice in 'df1'
 p2 <- ggplot(df1, aes(x = AveragePrice)) +
-  geom_density(fill = color1[2], alpha = 0.6) +
-  ggtitle('Distribution: AveragePrice')
+  geom_histogram(aes(y = ..density..), bins = 30, fill = color1[2], alpha = 0.6) +
+  geom_density(color = color1[2], size = 1) +
+  ggtitle('Distribution: AveragePrice') +
+  theme_minimal()
 
-# Arrange the first set of plots side by side
+# Arrange the first two plots side by side
 grid.arrange(p1, p2, ncol = 2)
 
-# Convert week to Date for plotting purposes
-df1 <- df1 %>%
-  mutate(Date = week)
-
-# Create the line plot for AveragePrice vs Date
-p3 <- ggplot(df1, aes(x = Date, y = AveragePrice)) + 
+# Third subplot: Line plot of AveragePrice vs Date in 'df1'
+# Assuming 'Date' is a column in 'df1'
+p3 <- ggplot(df1, aes(x = week, y = AveragePrice, group = 1)) +
   geom_line(color = color1[1]) +
   ggtitle('AveragePrice vs Date') +
   theme_minimal()
 
-# Display the line plot
-print(p3)
+# Display the third plot
+grid.arrange(p3, ncol = 1)
+
 
 ```
 Listing columns by data types.
@@ -162,3 +178,241 @@ grid.arrange(grobs = p_distribution, ncol = 2)
 grid.arrange(grobs = p_count, ncol = 2)
 
 ```
+
+Categorical Features vs Target Variable (AveragePrice) :
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+
+# Assuming 'data' is your dataframe and 'categorical_features' is your list of categorical features
+# Define your color palette
+color1 <- c('#296C92', '#3EB489')
+
+# Create a list to hold the plots
+plots <- list()
+
+# Loop through each categorical feature and create a bar plot
+for (i in seq_along(categorical_features)) {
+  p <- ggplot(data, aes_string(x = categorical_features[i], y = 'AveragePrice', fill = categorical_features[i])) +
+    geom_bar(stat = "summary", fun = "mean", color = 'black', fill = color1[i %% length(color1) + 1]) +
+    ggtitle(paste(categorical_features[i], 'vs AveragePrice')) +
+    theme_minimal() +
+    theme(legend.position = "none")
+  
+  plots[[i]] <- p
+}
+
+# Arrange the plots side by side
+do.call(grid.arrange, c(plots, ncol = 2))
+
+```
+Numerical Features :
+Distribution of Numerical Features :
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Assuming 'df1' is your dataframe and 'numerical_features' is your list of numerical features
+
+# Determine the total number of features
+total_features <- length(numerical_features)
+
+# Determine the number of full rows needed
+n_full_rows <- floor(total_features / 2)
+
+# Loop through each numerical feature and create a distribution plot
+for (i in seq(1, by = 2, length.out = n_full_rows)) {
+  p1 <- ggplot(df1, aes_string(x = paste0('`', numerical_features[i], '`'))) +
+    geom_histogram(aes(y = ..density..), bins = 30, fill = '#296C92', alpha = 0.6) +
+    geom_density(color = '#3EB489', size = 1) +
+    ggtitle(paste('Distribution:', numerical_features[i])) +
+    theme_minimal()
+  
+  # Check if there's a second plot to add
+  if (i + 1 <= total_features) {
+    p2 <- ggplot(df1, aes_string(x = paste0('`', numerical_features[i + 1], '`'))) +
+      geom_histogram(aes(y = ..density..), bins = 30, fill = '#296C92', alpha = 0.6) +
+      geom_density(color = '#3EB489', size = 1) +
+      ggtitle(paste('Distribution:', numerical_features[i + 1])) +
+      theme_minimal()
+    
+    grid.arrange(p1, p2, ncol = 2)
+  } else {
+    # If there's only one plot left, print it as the last plot in a row
+    print(p1)
+  }
+}
+
+# If there's an odd number of features, print the last feature alone
+if (total_features %% 2 != 0) {
+  last_feature_index <- total_features
+  last_p <- ggplot(df1, aes_string(x = paste0('`', numerical_features[last_feature_index], '`'))) +
+    geom_histogram(aes(y = ..density..), bins = 30, fill = '#296C92', alpha = 0.6) +
+    geom_density(color = '#3EB489', size = 1) +
+    ggtitle(paste('Distribution:', numerical_features[last_feature_index])) +
+    theme_minimal()
+  
+  print(last_p)
+}
+
+
+
+```
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Assuming your data is in a dataframe named 'data'
+
+# Calculate percentages for each feature based on type
+total_volume <- sum(data[data$type == 'conventional',]$`Total Volume`) / sum(data$`Total Volume`) * 100
+total_volume <- c(total_volume, sum(data[data$type == 'organic',]$`Total Volume`) / sum(data$`Total Volume`) * 100)
+
+avocado_4046 <- sum(data[data$type == 'conventional',]$`4046`) / sum(data$`4046`) * 100
+avocado_4046 <- c(avocado_4046, sum(data[data$type == 'organic',]$`4046`) / sum(data$`4046`) * 100)
+
+avocado_4225 <- sum(data[data$type == 'conventional',]$`4225`) / sum(data$`4225`) * 100
+avocado_4225 <- c(avocado_4225, sum(data[data$type == 'organic',]$`4225`) / sum(data$`4225`) * 100)
+
+avocado_4770 <- sum(data[data$type == 'conventional',]$`4770`) / sum(data$`4770`) * 100
+avocado_4770 <- c(avocado_4770, sum(data[data$type == 'organic',]$`4770`) / sum(data$`4770`) * 100)
+
+total_bags <- sum(data[data$type == 'conventional',]$`Total Bags`) / sum(data$`Total Bags`) * 100
+total_bags <- c(total_bags, sum(data[data$type == 'organic',]$`Total Bags`) / sum(data$`Total Bags`) * 100)
+
+small_bags <- sum(data[data$type == 'conventional',]$`Small Bags`) / sum(data$`Small Bags`) * 100
+small_bags <- c(small_bags, sum(data[data$type == 'organic',]$`Small Bags`) / sum(data$`Small Bags`) * 100)
+
+large_bags <- sum(data[data$type == 'conventional',]$`Large Bags`) / sum(data$`Large Bags`) * 100
+large_bags <- c(large_bags, sum(data[data$type == 'organic',]$`Large Bags`) / sum(data$`Large Bags`) * 100)
+
+xlarge_bags <- sum(data[data$type == 'conventional',]$`XLarge Bags`) / sum(data$`XLarge Bags`) * 100
+xlarge_bags <- c(xlarge_bags, sum(data[data$type == 'organic',]$`XLarge Bags`) / sum(data$`XLarge Bags`) * 100)
+
+# Combine percentages into a data frame
+type_numerical_features_percentage <- data.frame(
+  feature = rep(c("Total Volume", "4046", "4225", "4770", "Total Bags", "Small Bags", "Large Bags", "XLarge Bags"), each = 2),
+  type = rep(c("Conventional", "Organic"), times = 8),
+  percentage = c(total_volume, avocado_4046, avocado_4225, avocado_4770, total_bags, small_bags, large_bags, xlarge_bags)
+)
+
+# Create the plot
+ggplot(type_numerical_features_percentage, aes(x = feature, y = percentage, fill = type)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 3) +
+  labs(title = "Percentage Contribution by Feature Type", 
+       fill = "Type", 
+       x = "Feature", 
+       y = "Percentage") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+```{r}
+
+
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+# Assume `data` is already loaded as a data frame with the same structure
+
+# Calculate percentages for each numerical feature per year
+total_volume <- data %>%
+  group_by(year) %>%
+  summarize(Total_Volume = sum(`Total Volume`)) %>%
+  mutate(Percentage = Total_Volume / sum(Total_Volume) * 100)
+
+avocado_4046 <- data %>%
+  group_by(year) %>%
+  summarize(avocado_4046 = sum(`4046`)) %>%
+  mutate(Percentage = avocado_4046 / sum(avocado_4046) * 100)
+
+avocado_4225 <- data %>%
+  group_by(year) %>%
+  summarize(avocado_4225 = sum(`4225`)) %>%
+  mutate(Percentage = avocado_4225 / sum(avocado_4225) * 100)
+
+avocado_4770 <- data %>%
+  group_by(year) %>%
+  summarize(avocado_4770 = sum(`4770`)) %>%
+  mutate(Percentage = avocado_4770 / sum(avocado_4770) * 100)
+
+total_bags <- data %>%
+  group_by(year) %>%
+  summarize(Total_Bags = sum(`Total Bags`)) %>%
+  mutate(Percentage = Total_Bags / sum(Total_Bags) * 100)
+
+small_bags <- data %>%
+  group_by(year) %>%
+  summarize(Small_Bags = sum(`Small Bags`)) %>%
+  mutate(Percentage = Small_Bags / sum(Small_Bags) * 100)
+
+large_bags <- data %>%
+  group_by(year) %>%
+  summarize(Large_Bags = sum(`Large Bags`)) %>%
+  mutate(Percentage = Large_Bags / sum(Large_Bags) * 100)
+
+xlarge_bags <- data %>%
+  group_by(year) %>%
+  summarize(XLarge_Bags = sum(`XLarge Bags`)) %>%
+  mutate(Percentage = XLarge_Bags / sum(XLarge_Bags) * 100)
+
+# Combine all percentages into one data frame for easier plotting
+percentage_data <- data.frame(
+  year = rep(2015:2018, 8),
+  feature = rep(c("Total Volume", "4046", "4225", "4770", "Total Bags", "Small Bags", "Large Bags", "XLarge Bags"), each = 4),
+  percentage = c(total_volume$Percentage, avocado_4046$Percentage, avocado_4225$Percentage,
+                 avocado_4770$Percentage, total_bags$Percentage, small_bags$Percentage,
+                 large_bags$Percentage, xlarge_bags$Percentage)
+)
+
+# Define colors
+color1 <- c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")
+
+# Create labels for pie chart segments
+percentage_data <- percentage_data %>%
+  group_by(feature) %>%
+  mutate(ypos = cumsum(percentage) - 0.5 * percentage)
+
+# Function to create individual pie charts
+create_pie_chart <- function(feature_name) {
+  ggplot(percentage_data %>% filter(feature == feature_name), aes(x = "", y = percentage, fill = factor(year))) +
+    geom_bar(stat = "identity", width = 1, color = "black") +
+    coord_polar(theta = "y") +
+    geom_text(aes(y = ypos, label = sprintf("%.1f%%", percentage)), color = "black", size = 3) +
+    scale_fill_manual(values = color1) +
+    theme_void() +
+    theme(
+      strip.text = element_text(size = 12, face = "bold"),
+      legend.position = "bottom"
+    ) +
+    labs(fill = "Year", title = feature_name)
+}
+
+# Create individual pie charts
+plots <- lapply(unique(percentage_data$feature), create_pie_chart)
+
+# Arrange pie charts in a grid of 2
+grid_plots <- lapply(seq(1, length(plots), by = 2), function(i) {
+  grid.arrange(grobs = plots[i:min(i+1, length(plots))], ncol = 2)
+})
+
+# Display the plots
+for (g in grid_plots) {
+  print(g)
+}
+
+
+
+
+```
+
+
