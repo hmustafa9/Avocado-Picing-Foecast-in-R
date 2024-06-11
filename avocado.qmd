@@ -315,8 +315,6 @@ ggplot(type_numerical_features_percentage, aes(x = feature, y = percentage, fill
 ```
 ```{r}
 
-
-
 # Load necessary libraries
 library(dplyr)
 library(ggplot2)
@@ -409,10 +407,74 @@ grid_plots <- lapply(seq(1, length(plots), by = 2), function(i) {
 for (g in grid_plots) {
   print(g)
 }
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
 
+# Assume ⁠ df1 ⁠ is already loaded as a data frame with the same structure
 
+# Create individual line plots
+plot1 <- ggplot(df1, aes(x = week, y = AveragePrice)) +
+  geom_line() +
+  labs(title = "AveragePrice vs Date", x = "Date", y = "AveragePrice") +
+  theme_minimal()
 
+plot2 <- ggplot(df1, aes(x = week, y = `Total Volume`)) +
+  geom_line() +
+  labs(title = "Total Volume vs Date", x = "Date", y = "Total Volume") +
+  theme_minimal()
 
+plot3 <- ggplot(df1, aes(x = week, y = `Total Bags`)) +
+  geom_line() +
+  labs(title = "Total Bags vs Date", x = "Date", y = "Total Bags") +
+  theme_minimal()
+
+# Arrange plots in a single column layout
+grid.arrange(plot1, plot2, plot3, ncol = 1)
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+
+# Assume ⁠ df1 ⁠ is already loaded as a data frame with the same structure
+
+# List of features to plot
+l2 <- c('`4046`', '`4225`', '`4770`', '`Small Bags`', '`Large Bags`', '`XLarge Bags`')
+
+# Create individual line plots
+plots <- lapply(l2, function(feature) {
+  ggplot(df1, aes_string(x = "week", y = feature)) +
+    geom_line() +
+    labs(title = paste(feature, "vs Date"), x = "Date", y = feature) +
+    theme_minimal()
+})
+
+# Arrange plots in a grid layout of 3 rows and 2 columns
+grid.arrange(grobs = plots, nrow = 3, ncol = 2)
 ```
 
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Define the color palette
+color2 <- c('#DF3C22','#203EB9', '#F5EE04','#50CD27')
+
+# Create the point plot
+#|fig-width: 8
+#|fig-height: 28
+ggplot(data, aes (x=`Total Volume`, y = region, color = factor(year), group = year)) +
+  geom_point(size = 3) +
+  geom_line() +
+  scale_color_manual(values = color2) +
+  theme_minimal() +
+  labs(title = "Total Volume vs Region by Year",
+       x = "Total Volume",
+       y = "Region",
+       color = "Year") +
+  theme(legend.position = "right", legend.title = element_text(size = 12))
+```
 
