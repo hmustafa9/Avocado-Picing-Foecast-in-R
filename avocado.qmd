@@ -463,11 +463,9 @@ library(ggplot2)
 # Define the color palette
 color2 <- c('#DF3C22','#203EB9', '#F5EE04','#50CD27')
 
-# Create the point plot
-#|fig-width: 8
-#|fig-height: 28
-ggplot(data, aes (x=`Total Volume`, y = region, color = factor(year), group = year)) +
-  geom_point(size = 3) +
+# Create the point plot with adjusted dimensions
+ggplot(data, aes(y=`Total Volume`, x = region, color = factor(year), group = year)) +
+  geom_point(size = 2) +
   geom_line() +
   scale_color_manual(values = color2) +
   theme_minimal() +
@@ -475,6 +473,198 @@ ggplot(data, aes (x=`Total Volume`, y = region, color = factor(year), group = ye
        x = "Total Volume",
        y = "Region",
        color = "Year") +
-  theme(legend.position = "right", legend.title = element_text(size = 12))
+  theme(legend.position = "right", legend.title = element_text(size = 12),
+        plot.title = element_text(size = 16),  # Adjust title font size
+        plot.background = element_rect(fill = "white"),  # Set background color
+        aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Define the color palette
+color2 <- c('#DF3C22','#203EB9', '#F5EE04','#50CD27')
+
+# Create the point plot with adjusted dimensions
+ggplot(data, aes(y=`Total Volume`, x = region, color = type, group = year)) +
+  geom_point(size = 2) +
+  geom_line() +
+  scale_color_manual(values = color2) +
+  theme_minimal() +
+  labs(title = "Total Volume vs Region by Year",
+       x = "Total Volume",
+       y = "Region",
+       color = "Year") +
+  theme(legend.position = "right", legend.title = element_text(size = 12),
+        plot.title = element_text(size = 16),  # Adjust title font size
+        plot.background = element_rect(fill = "white"),  # Set background color
+        aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Define the color palette
+color2 <- c('#DF3C22','#203EB9', '#F5EE04','#50CD27')
+
+# Create the point plot with adjusted dimensions
+ggplot(data, aes(y=`Total Bags`, x = region, color = factor(year), group = year)) +
+  geom_point(size = 2) +
+  geom_line() +
+  scale_color_manual(values = color2) +
+  theme_minimal() +
+  labs(title = "Total Volume vs Region by Year",
+       x = "Total Volume",
+       y = "Region",
+       color = "Year") +
+  theme(legend.position = "right", legend.title = element_text(size = 12),
+        plot.title = element_text(size = 16),  # Adjust title font size
+        plot.background = element_rect(fill = "white"),  # Set background color
+        aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Define the color palette
+color2 <- c('#DF3C22','#203EB9', '#F5EE04','#50CD27')
+
+# Create the point plot with adjusted dimensions
+ggplot(data, aes(y=`Total Bags`, x = region, color = type, group = year)) +
+  geom_point(size = 2) +
+  geom_line() +
+  scale_color_manual(values = color2) +
+  theme_minimal() +
+  labs(title = "Total Volume vs Region by Year",
+       x = "Total Volume",
+       y = "Region",
+       color = "Year") +
+  theme(legend.position = "right", legend.title = element_text(size = 12),
+        plot.title = element_text(size = 16),  # Adjust title font size
+        plot.background = element_rect(fill = "white"),  # Set background color
+        aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+Time Series Analysis :
+```{r}
+head(df1)
+```
+
+```{r}
+col_names <- names(df1)
+col_names <- col_names[col_names %in% c("AveragePrice","week")]
+
+# Drop columns from df1 using indexing
+df1 <- df1[, col_names]
+
+# Show the first few rows of the modified df1
+head(df1)
+```
+```{r}
+library("forecast")
+
+# Assuming df1 is your data frame with a column named 'AveragePrice'
+
+# Convert df1['AveragePrice'] to a time series object
+ts_data <- ts(df1$AveragePrice, frequency = 7)  # Assuming monthly data
+
+# Decompose the time series using multiplicative model
+decomposed <- decompose(ts_data, type = "multiplicative")
+
+# Plot the decomposition
+plot(decomposed)
+```
+```{r}
+library(forecast)
+library(urca)
+# Define the function for testing stationarity
+test_stationarity <- function(timeseries) {
+  # Plot the time series
+  plot(timeseries, main = "Original Time Series", ylab = "Value", xlab = "Time")
+  
+  # Perform Dickey-Fuller test
+  df_test <- ndiffs(timeseries)
+  print(paste("Number of Differences:", df_test))
+  
+  # Perform ADF test
+  adf_test <- ur.df(timeseries, type = "trend", lags = 7, selectlags = "AIC")
+  print(summary(adf_test))
+}
+test_stationarity(df1$AveragePrice)
+```
+
+```{r}
+# Calculate the logarithm of 'AveragePrice'
+df1$Log_AveragePrice <- log(df1$AveragePrice)
+
+# Calculate the first difference of the logarithm
+df1_log_diff <- diff(df1$Log_AveragePrice)
+df1_log_diff <- df1_log_diff[-1]  # Remove the NA value created by diff()
+
+# Decompose the time series using seasonal decomposition
+decomposed <- decompose(ts(df1_log_diff, frequency = 52), type = "multiplicative")
+
+# Plot the decomposition
+plot(decomposed)
+```
+
+```{r}
+test_stationarity(df1_log_diff)
+```
+```{r}
+ts_data <- ts(df1$AveragePrice)
+plot(ts_data)
+acf(ts_data, lag.max=10, main="ACF")
+
+```
+
+```{r}
+pacf(ts_data, lag.max=10, main="PACF")
+```
+```{r}
+loggy=ts(df1_log_diff)
+plot(loggy)
+acf(loggy, lag.max=10, main="ACF")
+pacf(loggy, lag.max=10, main="PACF")
+
+```
+```{r}
+# Load necessary library
+library(forecast)
+
+# Assuming df1_log_averageprice is your time series data in R
+
+# Fit ARIMA model
+model <- Arima(df1$Log_AveragePrice, order = c(1,1,2))
+
+# Summary of the fitted model
+summary(model)
+
+```
+```{r}
+# Fitted values of the model
+predictions_ARIMA <- fitted(model)
+
+# Reversing the 1st order Differencing by taking cumulative sum
+predictions_ARIMA_cumsum <- cumsum(predictions_ARIMA)
+
+# Creating a vector with the same length as the original 'Log_AveragePrice'
+# All the elements of this new vector are same as the 1st element of the original 'Log_AveragePrice'
+expected_log_values <- rep(df1$Log_AveragePrice[1], length(df1$Log_AveragePrice))
+
+# Adding the elements of this newly created vector with the cumulative sum vector
+expected_log_values <- expected_log_values + predictions_ARIMA_cumsum
+
+# Taking exponential of the above vector for getting the original values
+predictions_ARIMA_final <- exp(expected_log_values)
+
+# Plotting
+plot(df1$AveragePrice, type = "l", col = "blue", xlab = "Time", ylab = "Average Price", main = "")
+lines(predictions_ARIMA_final, col = "red")
+legend("topleft", legend = c("Average Price", "Fitted Average Price"), col = c("blue", "red"))
+
 ```
 
