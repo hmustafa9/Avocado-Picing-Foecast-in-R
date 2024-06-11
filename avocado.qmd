@@ -648,23 +648,104 @@ summary(model)
 # Fitted values of the model
 predictions_ARIMA <- fitted(model)
 
-# Reversing the 1st order Differencing by taking cumulative sum
-predictions_ARIMA_cumsum <- cumsum(predictions_ARIMA)
 
-# Creating a vector with the same length as the original 'Log_AveragePrice'
-# All the elements of this new vector are same as the 1st element of the original 'Log_AveragePrice'
-expected_log_values <- rep(df1$Log_AveragePrice[1], length(df1$Log_AveragePrice))
+predictions_ARIMA_final <- exp(predictions_ARIMA)
 
-# Adding the elements of this newly created vector with the cumulative sum vector
-expected_log_values <- expected_log_values + predictions_ARIMA_cumsum
-
-# Taking exponential of the above vector for getting the original values
-predictions_ARIMA_final <- exp(expected_log_values)
-
-# Plotting
-plot(df1$AveragePrice, type = "l", col = "blue", xlab = "Time", ylab = "Average Price", main = "")
+# Plotting the results
+plot(df1$AveragePrice, type = "l", col = "blue", xlab = "Index", ylab = "Average Price", main = "Fitted Average Price")
 lines(predictions_ARIMA_final, col = "red")
-legend("topleft", legend = c("Average Price", "Fitted Average Price"), col = c("blue", "red"))
+legend("topright", legend = c("Average Price", "Fitted Average Price"), col = c("blue", "red"), lty = 1)
+
 
 ```
+
+```{r}
+library(forecast)
+
+size <- length(df1$Log_AveragePrice) - 30
+train <- df1$Log_AveragePrice[1:size]
+test <- df1$Log_AveragePrice[(size+1):length(df1)]
+
+cat('\t ARIMA MODEL : In - Sample Forecasting \n\n')
+
+history <- as.vector(train)
+predictions <- numeric()
+
+for (t in 1:length(test)) {
+    
+    model <- Arima(history, order=c(1,1,2))
+    
+    output <- forecast(model, h=1)
+    yhat <- output$mean
+    
+    predictions <- c(predictions, yhat)
+    
+    obs <- test[t]
+    history <- c(history, obs)
+    
+    cat('predicted = ', exp(yhat), ', expected = ', exp(obs), '\n')
+}
+
+```
+
+```{r}
+# Load the necessary package
+library(forecast)
+
+# Assuming df1 is your dataframe and Log_AveragePrice is the column of interest
+# Fit the SARIMA model
+model <- Arima(df1$Log_AveragePrice, order = c(1,1,2), seasonal = list(order = c(0,1,0), period = 52))
+
+
+# Print the summary of the fitted model
+summary(model)
+
+```
+```{r}
+# Load necessary packages
+library(forecast)
+
+# Assuming df1 is your dataframe and Log_AveragePrice is the column of interest
+# Split the data into training and testing sets
+size <- nrow(df1) - 30
+train <- df1$Log_AveragePrice[1:size]
+test <- df1$Log_AveragePrice[(size+1):nrow(df1)]
+
+cat("\t SARIMA MODEL : In - Sample Forecasting \n")
+
+history <- as.numeric(train)
+predictions <- c()
+
+for (t in 1:length(test)) {
+  model <- Arima(history, order = c(1,1,2), seasonal = list(order = c(0,1,0), period = 52))
+  output <- forecast(model, h = 1)
+  yhat <- output$mean[1]
+  predictions <- c(predictions, yhat)
+  
+  obs <- test[t]
+  history <- c(history, obs)
+  
+  cat(sprintf("predicted = %f, expected = %f\n", exp(yhat), exp(obs)))
+}
+
+```
+```{r}
+# Create a time series for predictions
+predictions_series <- ts(predictions, start = start(test), frequency = frequency(test))
+
+# Plot the expected and predicted values
+df1$Date <- as.Date(df1$week)  # Assuming the row names are dates
+df1$ExpectedValues <- df1$AveragePrice
+df1$PredictedValues <- c(rep(NA, size), exp(predictions))
+
+ggplot(df1, aes(x = Date)) +
+  geom_line(aes(y = ExpectedValues, color = "Expected Values")) +
+  geom_line(aes(y = PredictedValues, color = "Predicted Values")) +
+  labs(title = "SARIMA Model: Expected vs Predicted Values",
+       y = "Average Price",
+       x = "Date") +
+  scale_color_manual(name = "Legend", values = c("Expected Values" = "blue", "Predicted Values" = "red")) +
+  theme_minimal()
+```
+
 
