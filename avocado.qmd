@@ -1,11 +1,13 @@
 ---
 title: "Avocado Pricing in R"
-author: "Husnain Mustafa"
-date: "06/02/2024"
+author: "Husnain Mustafa, Rudraksh Tyagi"
+date: "06/12/2024"
 format:
   html:
     code-fold: true
+    highlight-style: github
 theme: darkly
+
 ---
 
 # Loading Data:
@@ -13,10 +15,13 @@ theme: darkly
 ## Loading Libraries and Data Files
 ```{r}
 #| message = FALSE
-library(tidyverse)
+library(tidyverse) 
 library(ggplot2)
 library(naniar)
 ```
+## Reading and Displaying the Avocado Data
+In this analysis, we start by loading the readr package to read a CSV file named avocado.csv. The code snippet reads the data into a dataframe and displays the first few rows of the dataset to give an initial overview of its contents.
+
 ```{r}
 #| message = FALSE
 data <- read_csv('data/avocado.csv')
@@ -24,20 +29,26 @@ head(data)
 ```
 
 # Dataset Infomation:
-Data Dimensions
+## Inspecting the Dimensions of the Avocado Data
+After reading the avocado dataset into a dataframe, the next step involves inspecting the dimensions of the dataset. This step helps us understand the size of the data, i.e., the number of rows and columns it contains.
 ```{r}
 dim(data)
 ```
-Column Names:
+## Inspecting the Column Names of the Avocado Data
+Following the examination of the dataset's dimensions, the next step is to inspect the column names. This step helps us understand the different variables and features present in the dataset.
 ```{r}
 colnames(data)
 ```
-Structure:
+## Inspecting the Structure of the Avocado Data
+The next step is to inspect the structure of the dataset. Look for data ranges and types.
 ```{r}
 str(data)
 ```
-Missing Data:
+## Missing Data:
+
+In this step, we load additional libraries and create a heatmap to visualize any missing data within the avocado dataset. This visualization helps identify patterns of missing values and understand the extent of missing data in the dataset
 ```{r}
+#| message = FALSE
 # Load necessary libraries
 library(ggplot2)
 library(reshape2)
@@ -54,12 +65,16 @@ ggplot(data_melt, aes(x = Var2, y = Var1, fill = value)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1), 
         legend.position = "none")
 ```
-Numerical Summary
+
+## Generating a Numerical Summary of the Avocado Data.
+
+After visualizing the missing data, the next step involves generating a numerical summary of the dataset. This summary provides statistical insights into the distribution and central tendencies of the numerical variables in the avocado dataset.
 ```{r}
 data %>% 
   summary()
 ```
-Agregating data for weeks.
+In this step, we load additional libraries and manipulate the avocado dataset to aggregate the data by week. This involves converting date columns, arranging data, creating a week column, and summarizing numeric columns.
+
 ```{r}
 #| message = FALSE
 library(lubridate)
@@ -83,8 +98,17 @@ df1 <- df1 %>%
 # Display the first few rows of the resulting data frame
 head(df1)
 ```
-Plotting Data distribution for Average Price.
+# Plotting Data distribution for Average Price:
+
+We create visualizations for understanding the distribution and trends of avocado prices:
+1.⁠ ⁠Distribution of Average Prices:
+- Original Data: A histogram and density plot show the frequency and shape of average prices in the original dataset, indicating common price ranges and their distribution.
+- Weekly Aggregated Data: Similar visualization for the weekly aggregated data allows comparison with the original dataset, highlighting any changes in distribution due to aggregation.
+2.⁠ ⁠Trend of Average Prices Over Time:
+- Line Plot: Visualizes the trend of average prices over time using weekly aggregated data, revealing patterns, seasonality, and long-term trends in avocado prices.
+These visualizations help identify key patterns in price distribution and trends, providing valuable insights into the avocado market
 ```{r}
+#| message = FALSE
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -123,7 +147,10 @@ grid.arrange(p3, ncol = 1)
 
 
 ```
-Listing columns by data types.
+## Listing columns by data types:
+
+In this step, we categorize the features of the avocado dataset into categorical and numerical features based on the uniqueness of their values. This classification is crucial for applying appropriate data analysis and visualization techniques to each type of feature. (Listing columns by data types)
+
 ```{r}
 # Get column names
 col <- names(data)
@@ -148,8 +175,15 @@ numerical_features <- numerical_features[!numerical_features %in% c('Date', 'Ave
 cat('Categorical Features:', paste(categorical_features, collapse = ', '), '\n')
 cat('Numerical Features:', paste(numerical_features, collapse = ', '), '\n')
 ```
-Plotting distribution by year.
+
+## Visualizing Categorical Feature Distributions and Counts:
+
+In this step, we create visualizations that display the distributions and counts of categorical features in the avocado dataset to gain insights into their patterns and frequencies:
+- Density Plots: Show the distribution of each categorical feature, highlighting how often different categories occur.
+- Bar Plots: Display the count of each category, providing a clear view of the frequency of each categorical value.
+
 ```{r}
+#| message = FALSE
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -179,8 +213,15 @@ grid.arrange(grobs = p_count, ncol = 2)
 
 ```
 
-Categorical Features vs Target Variable (AveragePrice) :
+## Categorical Features vs Target Variable (AveragePrice) :
+
+Bar plots to visualize the relationship between each categorical feature and the average price in the avocado dataset. This helps in understanding how different categories influence the average price.
+
+- Bar Plots: Show the mean average price for each category of the categorical features, highlighting how different categories influence the average price.
+- Colour-Coded: Alternating colors provide a clear visual distinction between different categories
+
 ```{r}
+#| message = FALSE
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -207,8 +248,12 @@ for (i in seq_along(categorical_features)) {
 do.call(grid.arrange, c(plots, ncol = 2))
 
 ```
-Numerical Features :
-Distribution of Numerical Features :
+## Distribution of Numerical Features :
+
+In this step, we create histogram and density plots to visualize the distribution of each numerical feature in the dataset. This helps us understand the distribution and variability of numerical variables
+- Histogram and Density Plots: Show the distribution, central tendency, and spread of each numerical feature.
+- Color-Coded: Provides clear visual distinction for each feature
+
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -259,6 +304,12 @@ if (total_features %% 2 != 0) {
 
 
 ```
+## Percentage contribution by feature type:
+Next we calculate the percentage contributions of various numerical features based on the avocado type (conventional or organic) and visualize these contributions using a bar plot.
+
+- Percentage Calculations: Determined the relative contributions of features like Total Volume, 4046, 4225, 4770, Total Bags, Small Bags, Large Bags, and XLarge Bags for conventional and organic avocados.
+- Bar Plot Visualization: Displayed the percentage contributions side by side for easy comparison, with text labels indicating the exact percentages
+
 ```{r}
 # Load necessary libraries
 library(dplyr)
@@ -311,8 +362,13 @@ ggplot(type_numerical_features_percentage, aes(x = feature, y = percentage, fill
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.5))
 
-
 ```
+## Calculating and Visualizing Yearly Percentage Contributions of Numerical Features:
+
+Now we look at the yearly percentage contributions of various numerical features and visualize these contributions using pie charts.
+- ⁠Percentage Calculations: Determined the relative contributions of features like Total Volume, 4046, 4225, 4770, Total Bags, Small Bags, Large Bags, and XLarge Bags for each year from 2015 to 2018.
+- ⁠Pie Chart Visualization: Displayed the yearly percentage contributions in pie charts, with text labels indicating the exact percentages.
+
 ```{r}
 
 # Load necessary libraries
@@ -408,6 +464,14 @@ for (g in grid_plots) {
   print(g)
 }
 ```
+
+## Visualizing Time Series Data with Line Plots (time series):
+
+Individual line plots to visualize the trends of different numerical features over time. This helps in understanding how these features change on a weekly basis
+- Average Price vs Date: Shows how the average price changes over time.
+- Total Volume vs Date: Visualizes the trend in total volume of avocados sold each week.
+- Total Bags vs Date: Displays the weekly changes in the total number of bags sold.
+
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -434,6 +498,19 @@ plot3 <- ggplot(df1, aes(x = week, y = `Total Bags`)) +
 # Arrange plots in a single column layout
 grid.arrange(plot1, plot2, plot3, ncol = 1)
 ```
+
+## Visualizing Time Series Data for Multiple Features:
+
+In this step, we create individual line plots for various numerical features to visualize their trends over time. This helps in understanding how these features change on a weekly basis.
+### Features Plotted:
+⁠-  ⁠4046: Sales of small-sized avocados.
+-  ⁠4225: Sales of medium-sized avocados.
+-⁠  ⁠4770: Sales of large-sized avocados.
+-⁠  ⁠Small Bags: Sales in small bags.
+-⁠  ⁠Large Bags: Sales in large bags.
+-⁠  ⁠XLarge Bags: Sales in extra-large bags.
+-  Line Plots: Show how these features change over time, providing a clear view of weekly trends.
+
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -455,6 +532,12 @@ plots <- lapply(l2, function(feature) {
 # Arrange plots in a grid layout of 3 rows and 2 columns
 grid.arrange(grobs = plots, nrow = 3, ncol = 2)
 ```
+
+## Visualizing Total Volume by Region and Year:
+
+In this step, we create a point plot with lines to visualize the total volume of avocados sold across different regions and years. This helps in understanding the regional sales distribution and how it changes annually.
+Total Volume vs Region by Year:
+- ⁠Points and Lines: Show the total volume of avocados sold in each region for each year, highlighting annual trends and regional distribution.
 
 ```{r}
 # Load necessary library
@@ -479,6 +562,12 @@ ggplot(data, aes(y=`Total Volume`, x = region, color = factor(year), group = yea
         aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
+
+## Visualizing Total Volume by Region and Year:
+
+Total Volume vs Region by Year shows the total volume of avocados sold in each region for each year, highlighting annual trends and regional distribution.
+
+
 ```{r}
 # Load necessary library
 library(ggplot2)
@@ -502,6 +591,12 @@ ggplot(data, aes(y=`Total Volume`, x = region, color = type, group = year)) +
         aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
+
+## Visualizing Total Bags by Region and Year:
+
+Total Bags vs Region by Year to show the total number of avocado bags sold in each region for each year, highlighting annual trends and regional distribution.
+
+
 ```{r}
 # Load necessary library
 library(ggplot2)
@@ -525,6 +620,11 @@ ggplot(data, aes(y=`Total Bags`, x = region, color = factor(year), group = year)
         aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
+
+## Visualizing Total Bags by Region and Type:
+
+In this step, we create a point plot with lines to visualize the total number of avocado bags sold across different regions, types (conventional or organic), and years. This helps in understanding the regional sales distribution and how it varies by avocado type annually.
+
 ```{r}
 # Load necessary library
 library(ggplot2)
@@ -548,10 +648,17 @@ ggplot(data, aes(y=`Total Bags`, x = region, color = type, group = year)) +
         aspect.ratio = 0.4)+  # Adjust aspect ratio to make the plot longer 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
-Time Series Analysis :
+## Time Series Analysis :
+
+We began our time series analysis by inspecting the initial rows of the dataframe to ensure the data is properly structured. This confirmed that our data includes columns for date, average price, total volume, and various bag sizes.
+
 ```{r}
 head(df1)
 ```
+
+## Selecting and Displaying Relevant Columns:
+
+In this step, we select specific columns from the dataframe df1 (namely AveragePrice and week) and display the first few rows of the modified dataframe to confirm the selection.
 
 ```{r}
 col_names <- names(df1)
@@ -563,6 +670,15 @@ df1 <- df1[, col_names]
 # Show the first few rows of the modified df1
 head(df1)
 ```
+
+## Time Series Decomposition:
+
+In this step, we perform a time series decomposition using a multiplicative model to analyze the trend, seasonality, and residuals in the AveragePrice data over time. This helps in understanding the underlying patterns and components of the time series data.
+Output: The output will display four plots:
+1.⁠ ⁠Observed: The original time series data.
+2.⁠ ⁠Trend: The underlying trend component.
+3.⁠ ⁠Seasonal: The seasonal component.
+4.⁠ ⁠Random: The residuals or random noise component.
 ```{r}
 library("forecast")
 
@@ -577,6 +693,10 @@ decomposed <- decompose(ts_data, type = "multiplicative")
 # Plot the decomposition
 plot(decomposed)
 ```
+## Testing Stationarity of the Time Series:
+
+In this step, we test the stationarity of the AveragePrice time series using the Dickey-Fuller test and the Augmented Dickey-Fuller (ADF) test. Stationarity is a crucial property for time series data used in forecasting models like ARIMA.
+
 ```{r}
 library(forecast)
 library(urca)
@@ -595,6 +715,10 @@ test_stationarity <- function(timeseries) {
 }
 test_stationarity(df1$AveragePrice)
 ```
+## Log Transformation and Differencing for Time Series Decomposition:
+
+We use log transformation and first differencing of the AveragePrice time series to stabilize the variance and achieve stationarity. We then decompose the transformed time series to analyze its components.
+
 
 ```{r}
 # Calculate the logarithm of 'AveragePrice'
@@ -610,10 +734,14 @@ decomposed <- decompose(ts(df1_log_diff, frequency = 52), type = "multiplicative
 # Plot the decomposition
 plot(decomposed)
 ```
+## Testing Stationarity of the Differenced Log-Transformed Series:
+
+We will test the stationarity of the differenced log-transformed AveragePrice time series using the previously defined test_stationarity function. Then, we will plot the original AveragePrice time series and its autocorrelation function (ACF).
 
 ```{r}
 test_stationarity(df1_log_diff)
 ```
+
 ```{r}
 ts_data <- ts(df1$AveragePrice)
 plot(ts_data)
@@ -631,6 +759,10 @@ acf(loggy, lag.max=10, main="ACF")
 pacf(loggy, lag.max=10, main="PACF")
 
 ```
+## Time Series Analysis and Forecasting with ARIMA Model:
+
+In this analysis, we perform a series of steps to analyze and forecast the AveragePrice of avocados using an ARIMA model. The fitted values were then plotted against the original series to evaluate the model's performance. This comprehensive approach provides valuable insights into the time series behavior and helps in accurate forecasting.
+
 ```{r}
 # Load necessary library
 library(forecast)
@@ -644,6 +776,7 @@ model <- Arima(df1$Log_AveragePrice, order = c(1,1,2))
 summary(model)
 
 ```
+
 ```{r}
 # Fitted values of the model
 predictions_ARIMA <- fitted(model)
@@ -660,6 +793,7 @@ legend("topright", legend = c("Average Price", "Fitted Average Price"), col = c(
 ```
 
 ```{r}
+#| echo: false
 library(forecast)
 
 size <- length(df1$Log_AveragePrice) - 30
@@ -687,6 +821,10 @@ for (t in 1:length(test)) {
 }
 
 ```
+## SARIMA Model:
+The SARIMA model combines both non-seasonal and seasonal components to capture the underlying patterns in the Log_AveragePrice time series. The non-seasonal component (order = c(1,1,2)) captures the short-term dependencies, while the seasonal component (seasonal = list(order = c(0,1,0), period = 52)) captures the yearly seasonal effects in the data.
+
+By fitting this model, we can better understand and forecast the avocado prices, accounting for both trends and seasonal variations. The summary output provides insights into the model parameters and their statistical significance, helping to evaluate the model's adequacy for the given time series data.
 
 ```{r}
 # Load the necessary package
@@ -702,6 +840,7 @@ summary(model)
 
 ```
 ```{r}
+#| echo: false
 # Load necessary packages
 library(forecast)
 
